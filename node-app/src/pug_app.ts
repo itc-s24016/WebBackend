@@ -3,7 +3,7 @@ import pug from 'pug'
 import url from 'node:url'
 
 // 最初で読み込んで置くことで、毎回読み込む必要がなくなる
-const index_template = pug.compileFile('./index.pug')
+const index_template = pug.compileFile('./pug_index.pug')
 const other_template = pug.compileFile('./other.pug')
 
 const server = http.createServer(getFromClient)
