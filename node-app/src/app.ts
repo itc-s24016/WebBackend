@@ -10,12 +10,9 @@ const other_template = pug.compileFile(path.join(import.meta.dirname, 'other.pug
 const server = http.createServer(getFromClient)
 server.listen(3210)
 
-const data = [
-    {id: 1, name: 'Taro', number: '090-999-999'},
-    {id: 2, name: 'Hanako', number: '080-888-888'},
-    {id: 3, name: 'Sachiko', number: '070-777-777'},
-    {id: 4, name: 'Jiro', number: '060-666-666'},
-]
+const data = {
+    msg: 'no message...'
+}
 
 async function getFromClient(req: http.IncomingMessage, res: http.ServerResponse) {
     const url_parts = new url.URL(req.url || '', 'http://localhost:3210')
@@ -36,15 +33,18 @@ async function getFromClient(req: http.IncomingMessage, res: http.ServerResponse
 }
 
 async function response_index(req: http.IncomingMessage, res: http.ServerResponse) {
-    let msg = 'これは Index ページです。'
-    const content = index_template({
-        title: 'Index',
-        content: msg,
-        data,
-    })
-    res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
-    res.write(content)
-    res.end()
+    if (req.method === 'POST') {
+        const post_data = await parse_body(req)
+        data.msg = post_data.msg as string
+        // POSTで送信して(302)
+        // テキスト表示のためにGETしてほしいので(200)
+        // Location ヘッダーのパスにリダイレクト（転送）させる作業を自動化する
+        res.writeHead(302, 'Found', {'Location': '/'})
+        res.end()
+
+    } else {
+        write_index(req, res)
+    }
 }
 
 async function response_other(req: http.IncomingMessage, res: http.ServerResponse) {
@@ -83,4 +83,27 @@ async function response_other(req: http.IncomingMessage, res: http.ServerRespons
         res.write(content)
         res.end()
     }
+}
+
+function parse_body(req: http.IncomingMessage): Promise<qs.ParsedUrlQuery> {
+    return new Promise((resolve, reject) => {
+        let body = ''
+        req.on('data', (chunk) => {
+            body += chunk
+        })
+        req.on('end', () => {
+            resolve(qs.parse(body))
+        })
+    })
+}
+
+function write_index(req: http.IncomingMessage, res: http.ServerResponse) {
+    const content = index_template({
+        title: 'Index',
+        content: '※伝言を表示します。',
+        data
+    })
+    res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
+    res.write(content)
+    res.end()
 }
