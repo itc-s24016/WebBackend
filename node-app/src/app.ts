@@ -36,9 +36,15 @@ async function response_index(req: http.IncomingMessage, res: http.ServerRespons
     if (req.method === 'POST') {
         const post_data = await parse_body(req)
         data.msg = post_data.msg as string
-        // POSTで送信して(302)
-        // テキスト表示のためにGETしてほしいので(200)
-        // Location ヘッダーのパスにリダイレクト（転送）させる作業を自動化する
+
+        // クッキー表示の機能
+        setCookie('msg', data.msg, res)
+
+        /*
+        POSTで送信して(302)
+        テキスト表示のためにGETしてほしいので(200)
+        Location ヘッダーのパスにリダイレクト（転送）させる作業を自動化する
+        */
         res.writeHead(302, 'Found', {'Location': '/'})
         res.end()
 
@@ -98,12 +104,42 @@ function parse_body(req: http.IncomingMessage): Promise<qs.ParsedUrlQuery> {
 }
 
 function write_index(req: http.IncomingMessage, res: http.ServerResponse) {
+    // 全てのクッキーを取得
+    const cookie_data = getCookie(req)
     const content = index_template({
         title: 'Index',
         content: '※伝言を表示します。',
-        data
+        data,
+        cookie_data,
     })
     res.writeHead(200, {'Content-Type': 'text/html; charset=UTF-8'})
     res.write(content)
     res.end()
+}
+// クッキーをエンコードして保存する関数
+function setCookie(key: string, value: string, res: http.ServerResponse) {
+    /*
+    [key]の意味は、変数keyの中身をプロパティ名にする　例（key = 'msg' のとき、{msg: value}）
+    qs.stringify() は {msg: value} というオブジェクトをエンコードする
+    */
+    const encoded_cookie = qs.stringify({[key]: value})
+    res.setHeader('Set-Cookie', [encoded_cookie])
+}
+
+// クッキーを取得してオブジェクトに変換する関数
+function getCookie(req: http.IncomingMessage) {
+    // クッキーがない場合、undefined になるので空文字にする
+    const cookie_data = req.headers.cookie != undefined
+        ? req.headers.cookie : ''
+    /*
+    複数のクッキーを';'区切りの配列にして、空白を削除しながらデコードする (フレームワークを使用したら、もっと簡単にできる)
+    理由）クッキーは複数保存でき、';'で区切られている
+    　　　{key: value}, {key2: value2}...
+    それを .reduce() でオブジェクトに変換して扱いやすくする
+         {key: value; key2: value2; ...}
+    */
+    const data = cookie_data.split(';')
+        .map(raw_cookie => qs.parse(raw_cookie.trim()))
+        .reduce((acc, cookie) => ({...acc, ...cookie}))
+    return data
 }
