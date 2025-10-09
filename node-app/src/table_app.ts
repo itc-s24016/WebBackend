@@ -10,12 +10,12 @@ const other_template = pug.compileFile(path.join(import.meta.dirname, 'other.pug
 const server = http.createServer(getFromClient)
 server.listen(3210)
 
-const data = [
-    {id: 1, name: 'Taro', number: '090-999-999'},
-    {id: 2, name: 'Hanako', number: '080-888-888'},
-    {id: 3, name: 'Sachiko', number: '070-777-777'},
-    {id: 4, name: 'Jiro', number: '060-666-666'},
-]
+const data = {
+    'Taro': '090-999-999',
+    'Hanako': '080-888-888',
+    'Sachiko': '070-777-777',
+    'Ichiro': '060-666-666'
+}
 
 async function getFromClient(req: http.IncomingMessage, res: http.ServerResponse) {
     const url_parts = new url.URL(req.url || '', 'http://localhost:3210')
