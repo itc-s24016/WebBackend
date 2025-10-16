@@ -2,3 +2,5 @@ extends layout
 
 block content
   p= content
+ //これを p!= content に変えると、HTMLタグがエスケープされずに正しく改行できる
+ // ただし、悪意あるスクリプトを実行することもできてしまうので使用しないこと
