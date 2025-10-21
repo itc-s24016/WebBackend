@@ -3,6 +3,7 @@ import express, {NextFunction, Request, Response} from 'express'
 import path from 'node:path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+import session from 'express-session'
 
 import indexRouter from './routes/index.js'
 import usersRouter from './routes/users.js'
@@ -19,6 +20,14 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(cookieParser())
 app.use(express.static(path.join(import.meta.dirname, 'public')))
+app.use(session({
+    secret: 'fjioeaegnrajgjr9pwtup85',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 60 * 60 * 1000 // 有効期限は1時間
+    }
+}))
 
 app.use('/', indexRouter)
 app.use('/users', usersRouter)
