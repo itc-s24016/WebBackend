@@ -1,6 +1,16 @@
 import { Router } from 'express';
+import axios from 'axios';
+import { XMLParser } from 'fast-xml-parser';
 
 const router = Router();
+const xmlParser = new XMLParser();
+const httpClient = axios.create({
+    baseURL: 'https://news.google.com',
+    transformResponse: [
+        data => xmlParser.parse(data),
+
+    ]
+})
 
 declare module 'express-session' {
     interface SessionData {
@@ -8,22 +18,18 @@ declare module 'express-session' {
     }
 }
 
-// /hello ではなく、 / にすることで、 app.ts で /hello を指定した際に正しく動作する
-router.get('/', (req, res, next) => {
-    const msg = req.session.message !== undefined
-        ? `Last Message: ${req.session.message}` : '何か書いて送信してください'
-
+router.get('/', async (req, res, next) => {
+    const res2 = await httpClient.get('/rss?hl=ja&gl=JP&ceid=JP:ja')
+    const result = res2.data
     const data = {
-        title: 'Hello',
-        content: msg
+        title: 'Google News',
+        content: result.rss.channel.item
     }
     res.render('hello', data);
 })
 
 router.post('/post', async (req, res, next) => {
-    // string | undefined にすることにより、1 + 1 を計算してしまうバグを防ぐ
     const msg = req.body.message as string | undefined
-    // セッションストレージにメッセージを保存
     req.session.message = msg;
     
     const data ={
@@ -33,5 +39,4 @@ router.post('/post', async (req, res, next) => {
     res.render('hello', data)
 })
 
-// この行で import できるようにする
 export default router;
