@@ -17,6 +17,7 @@ interface MyData {
     age: number
 }
 
+// 全件表示
 router.get('/', async (req, res, next) => {
     const result = await db.query<MyData>('SELECT * FROM mydata')
     res.render('hello/index', {
@@ -25,6 +26,7 @@ router.get('/', async (req, res, next) => {
     })
 })
 
+// データを追加する
 router.get('/add', async(req, res, next) => {
     res.render('hello/add', {
         title: 'Hello/Add',
@@ -37,9 +39,11 @@ router.post('/add', async(req, res, next) => {
     await db.query('INSERT INTO mydata (name, mail, age) VALUES (?, ?, ?)', [
         name, mail, age
     ])
+    // 追加したら一覧に戻る
     res.redirect('/hello')
 })
 
+// 指定したIDのデータを表示
 router.get('/show', async(req, res, next) => {
     const id = Number(req.query.id)
     const result: MyData[] = await db.query(
@@ -52,5 +56,27 @@ router.get('/show', async(req, res, next) => {
     })
 })
 
+// 指定したIDのデータを編集する
+router.get('/edit', async(req, res, next) => {
+    const id = Number(req.query.id)
+    const result: MyData[] = await db.query(
+        'SELECT * FROM mydata WHERE id = ?', [id]
+    )
+    res.render('hello/edit', {
+        title: 'Hello/edit',
+        content: `id = ${id} のレコードを編集`,
+        mydata: result[0]
+    })
+})
+
+router.post('/edit', async(req, res, next) => {
+    const {id, name, mail, age} = req.body
+    await db.query(
+        'UPDATE mydata SET name = ?, mail = ?, age = ? WHERE id = ?', [
+            name, mail, age, id
+        ])
+    // 編集したら一覧に戻る
+    res.redirect('/hello')
+})
 
 export default router
