@@ -79,4 +79,25 @@ router.post('/edit', async(req, res, next) => {
     res.redirect('/hello')
 })
 
+router.get('/delete', async(req, res, next) => {
+    const id = Number(req.query.id)
+    const result: MyData[] = await db.query(
+        'SELECT * FROM mydata WHERE id = ?', [id]
+    )
+    res.render('hello/delete', {
+        title: 'Hello/delete',
+        content: `id = ${id} のレコードを削除`,
+        mydata: result[0]
+    })
+})
+
+router.post('/delete', async(req, res, next) => {
+    const id = Number(req.body.id)
+    await db.query(
+        'DELETE FROM mydata WHERE id = ?', [id]
+    )
+    // 削除したら一覧に戻る
+    res.redirect('/hello')
+})
+
 export default router
