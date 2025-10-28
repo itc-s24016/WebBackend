@@ -40,7 +40,14 @@ router.get('/add', async(req, res, next) => {
 router.post('/add',
     check('name', 'NAME は必ず入力してください').notEmpty().escape(),
     check('mail', 'MAIL はメールアドレスを入力してください').isEmail().escape(),
-    check('age', 'AGE は年齢（整数）を入力してください').isInt().escape(),
+    check('age', 'AGE は年齢（整数）を入力してください').isInt().custom(
+        // 必ず async でないとカスタマイズできない
+        async value => {
+            if (!(value >= 0 && value <= 120)) {
+                throw new Error('AGE は 0 以上 120 以下で入力してください')
+            }
+        }
+    ).escape(),
     async (req, res, next) => {
     const result = validationResult(req)
     if (!result.isEmpty()) {
