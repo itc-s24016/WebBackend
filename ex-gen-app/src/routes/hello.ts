@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import mariadb from 'mariadb'
+import { check, validationResult } from 'express-validator'
 
 const router = Router()
 const db = await mariadb.createConnection({
@@ -30,11 +31,28 @@ router.get('/', async (req, res, next) => {
 router.get('/add', async(req, res, next) => {
     res.render('hello/add', {
         title: 'Hello/Add',
-        content: '新しいレコードを入力'
+        content: '新しいレコードを入力',
+        form: {name: '', mail: '', age: 0}, // 初期値とエラー用のパラメーターも追加
+        error:  {}
     })
 })
 
-router.post('/add', async(req, res, next) => {
+router.post('/add',
+    check('name', 'NAME は必ず入力してください').notEmpty(),
+    check('mail', 'MAIL はメールアドレスを入力してください').isEmail(),
+    check('age', 'AGE は年齢（整数）を入力してください').isInt(),
+    async (req, res, next) => {
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+        // 入力チェックに引っかかったら、もう一度画面をレンダリングする（やり直し）
+        res.render('hello/add', {
+            title: 'Hello/Add',
+            content: '新しいレコードを入力',
+            form: req.body,
+            error: result.mapped()
+        })
+        return
+    }
     const {name, mail, age} = req.body
     await db.query('INSERT INTO mydata (name, mail, age) VALUES (?, ?, ?)', [
         name, mail, age
