@@ -27,7 +27,7 @@ router.get('/', async (req, res, next) => {
     })
 })
 
-// データを追加する
+// データを追加する(http://localhost:3210/hello/add など)
 router.get('/add', async(req, res, next) => {
     res.render('hello/add', {
         title: 'Hello/Add',
@@ -38,9 +38,9 @@ router.get('/add', async(req, res, next) => {
 })
 
 router.post('/add',
-    check('name', 'NAME は必ず入力してください').notEmpty(),
-    check('mail', 'MAIL はメールアドレスを入力してください').isEmail(),
-    check('age', 'AGE は年齢（整数）を入力してください').isInt(),
+    check('name', 'NAME は必ず入力してください').notEmpty().escape(),
+    check('mail', 'MAIL はメールアドレスを入力してください').isEmail().escape(),
+    check('age', 'AGE は年齢（整数）を入力してください').isInt().escape(),
     async (req, res, next) => {
     const result = validationResult(req)
     if (!result.isEmpty()) {
@@ -61,7 +61,7 @@ router.post('/add',
     res.redirect('/hello')
 })
 
-// 指定したIDのデータを表示
+// 指定したIDのデータを表示(http://localhost:3210/hello/show?id=2 など)
 router.get('/show', async(req, res, next) => {
     const id = Number(req.query.id)
     const result: MyData[] = await db.query(
@@ -97,6 +97,7 @@ router.post('/edit', async(req, res, next) => {
     res.redirect('/hello')
 })
 
+// 指定したIDのデータを削除する(http://localhost:3210/hello/delete?id=9 など)
 router.get('/delete', async(req, res, next) => {
     const id = Number(req.query.id)
     const result: MyData[] = await db.query(
