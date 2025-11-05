@@ -21,13 +21,20 @@ interface UserParams {
     min?: string
     max?: string
     mail?: string
+    page?: string
 }
+const PAGE_SIZE = 3 // 1ページあたりの表示件数(今回はデータが少ないので3件に設定)
+
 // ユーザー一覧を名前の昇順で表示できるようになった
 router.get('/', async (req: Request<{}, {}, {}, UserParams>, res, next) => {
+    const page = req.query.page && parseInt(req.query.page) > 0 ? parseInt(req.query.page) : 1 // 0以下のページ番号は1, それ以外は指定されたページ番号
+
     const users = await prisma.user.findMany({
         orderBy: [{
             name: 'asc'
-        }]
+        }],
+        skip: (page - 1) * PAGE_SIZE, // スキップする件数 (例: 2ページ目: (2-1)*3= 3件スキップで4件目から表示)
+        take: PAGE_SIZE, // 1ページあたりの表示件数
     })
 
     res.render('users/index', {
