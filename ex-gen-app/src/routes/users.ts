@@ -22,12 +22,13 @@ interface UserParams {
     max?: string
     mail?: string
 }
-// ユーザー一覧表示ができるようになった
+// ユーザー一覧を名前の昇順で表示できるようになった
 router.get('/', async (req: Request<{}, {}, {}, UserParams>, res, next) => {
-    const id = parseInt(req.query.id || '')
-
-    const users = await (id ? prisma.user.findMany({where: {id}})
-        : prisma.user.findMany())
+    const users = await prisma.user.findMany({
+        orderBy: [{
+            name: 'asc'
+        }]
+    })
 
     res.render('users/index', {
         title: 'Users/Index',
