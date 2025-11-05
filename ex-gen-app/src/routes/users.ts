@@ -22,7 +22,7 @@ interface UserParams {
     max?: string
     mail?: string
 }
-
+// ユーザー一覧表示ができるようになった
 router.get('/', async (req: Request<{}, {}, {}, UserParams>, res, next) => {
     const id = parseInt(req.query.id || '')
 
@@ -56,6 +56,16 @@ router.get('/add', async (req, res, next) => {
     res.render('users/add', {
         title: 'Users/Add',
     })
+})
+
+// 新規ユーザーの追加ができるようになった
+router.post('/add', async (req, res, nexxt) => {
+    const {name, pass, mail} = req.body
+    const age = parseInt(req.body.age)
+    await prisma.user.create({
+        data: {name, pass, mail, age}
+    })
+    res.redirect('/users')
 })
 
 export default router
