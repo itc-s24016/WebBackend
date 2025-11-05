@@ -52,17 +52,38 @@ router.get('/find', async (req: Request<{}, {}, {}, UserParams>, res, next) => {
     })
 })
 
+// 新規ユーザーの追加ができるようになった
 router.get('/add', async (req, res, next) => {
     res.render('users/add', {
         title: 'Users/Add',
     })
 })
 
-// 新規ユーザーの追加ができるようになった
-router.post('/add', async (req, res, nexxt) => {
+router.post('/add', async (req, res, next) => {
     const {name, pass, mail} = req.body
     const age = parseInt(req.body.age)
     await prisma.user.create({
+        data: {name, pass, mail, age}
+    })
+    res.redirect('/users')
+})
+
+// ユーザー情報の編集ができるようになった
+router.get('/edit/:id', async (req, res, next) => {
+    const id = parseInt(req.params.id)
+    const user = await prisma.user.findUnique({where: {id}})
+    res.render('users/edit', {
+        title: 'Users/Edit',
+        user
+    })
+})
+
+router.post('/edit', async (req, res, next) => {
+    const id = parseInt(req.body.id)
+    const {name, pass, mail} = req.body
+    const age = parseInt(req.body.age)
+    await prisma.user.update({
+        where: {id},
         data: {name, pass, mail, age}
     })
     res.redirect('/users')
