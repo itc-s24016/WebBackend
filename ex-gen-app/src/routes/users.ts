@@ -89,4 +89,21 @@ router.post('/edit', async (req, res, next) => {
     res.redirect('/users')
 })
 
+// ユーザーの削除ができるようになった
+router.get('/delete/:id', async (req, res, next) => {
+    const id = parseInt(req.params.id)
+    const user = await prisma.user.findUnique({where: {id}})
+    res.render('users/delete', {
+        title: 'Users/Delete',
+        user
+    })
+})
+router.post('/delete', async (req, res, next) => {
+    const id = parseInt(req.body.id)
+    await prisma.user.delete({
+        where: {id}
+    })
+    res.redirect('/users')
+})
+
 export default router
