@@ -7,7 +7,7 @@ import app from '../app.js'
 import debug from 'debug'
 import http from 'node:http'
 
-const logger = debug('express-generator-typescript:server')
+const logger = debug('message_board:server')
 
 /**
  * Get port from environment and store in Express.
