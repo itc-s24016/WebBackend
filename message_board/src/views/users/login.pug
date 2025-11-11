@@ -21,3 +21,7 @@ block content
   p(class=['mt-4', 'flex', 'place-content-center', 'text-sm'])
     a(href='/users/register' class=['hover:underline', 'hover:text-blue-600'])
       | ユーザー登録
+
+  if error
+    p(class=['mt-6', 'text-sm', 'text-red-600', 'dark:text-red-400',
+      'text-center'])= error

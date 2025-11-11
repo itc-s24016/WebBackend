@@ -4,8 +4,10 @@ import path from 'node:path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
 
+import passport from './libs/auth.js' // 拡張済みの手作り passport を選択
 import indexRouter from './routes/index.js'
 import usersRouter from './routes/users.js'
+import session from "express-session";
 
 const app = express()
 
@@ -18,6 +20,17 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(cookieParser())
 app.use(express.static(path.join(import.meta.dirname, 'public')))
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret key',
+  resave: false,
+  saveUninitialized: false,
+  name: 'md_sid',
+  cookie: {
+    maxAge: 1000 * 60 * 60, // 1時間
+    httpOnly: true,
+  }
+}))
+app.use(passport.authenticate('session'))
 
 app.use('/', indexRouter)
 app.use('/users', usersRouter)
