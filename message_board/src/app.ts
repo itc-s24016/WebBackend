@@ -6,9 +6,11 @@ import logger from 'morgan'
 import session from "express-session";
 import {RedisStore} from 'connect-redis'
 import {createClient} from 'redis'
+import {cdate} from 'cdate'
 
 import passport from './libs/auth.js' // 拡張済みの手作り passport を選択
 
+// ルーティング設定
 import indexRouter from './routes/index.js'
 import usersRouter from './routes/users.js'
 import boardRouter from './routes/board.js'
@@ -24,6 +26,7 @@ const redisStore = new RedisStore({ client: redisClient })
 app.set('views', path.join(import.meta.dirname, 'views'))
 app.set('view engine', 'pug')
 
+// 各種ミドルウェアを登録
 app.use(logger('dev'))
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
@@ -42,16 +45,22 @@ app.use(session({
 }))
 app.use(passport.authenticate('session'))
 
+// テンプレートから参照した変数や関数を登録する
+app.locals.dateFormat = (dt:Date) => cdate(dt)
+  .tz('Asia/Tokyo')
+  .format('YYYY/MM/DD HH:mm:ss.SSS') // .SSS = ミリ秒まで
+
+// ルーティング設定
 app.use('/', indexRouter)
 app.use('/users', usersRouter)
 app.use('/board', boardRouter)
 
-// catch 404 and forward to error handler
+// 想定外のパスへアクセスがあった場合の処理
 app.use(async (req: Request, res: Response, next: NextFunction) => {
     throw createError(404)
 })
 
-// error handler
+// エラーの種類で処理を分岐させる
 app.use(async (err: unknown, req: Request, res: Response, next: NextFunction) => {
     // set locals, only providing error in development
     res.locals.message = hasProperty(err, 'message') && err.message || 'Unknown error'
