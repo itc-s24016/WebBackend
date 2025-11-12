@@ -1,5 +1,6 @@
 import {Router} from 'express'
 import prisma from '../libs/db.js'
+import {check, validationResult} from "express-validator";
 
 const router = Router()
 const ITEMS_PER_PAGE = 5
@@ -24,7 +25,7 @@ router.get('/{:page}', async (req, res) => {
       isDeleted: false // 削除したはずの投稿が表示されないようにする
     },
     orderBy: [
-      { createdAt: 'desc' } // 新しい投稿順に表示する
+      {createdAt: 'desc'} // 新しい投稿順に表示する
     ],
     include: {// 投稿者の id と name だけを取得する
       user: {
@@ -49,5 +50,23 @@ router.get('/{:page}', async (req, res) => {
     maxPage, // 最大ページ番号
   })
 })
+
+// 投稿処理
+router.post('/post',
+  check('message').notEmpty(),
+  async (req, res) => {
+    const result = validationResult(req)
+    if (result.isEmpty()) {
+      // message が入っていたら登録処理
+      await prisma.post.create({
+        data: {
+          userId: req.user?.id as string,
+          message: req.body.message,
+        }
+      })
+    }
+    return res.redirect('/board')
+  }
+)
 
 export default router
