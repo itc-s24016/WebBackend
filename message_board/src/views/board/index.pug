@@ -8,3 +8,8 @@ block header
 
 block content
   p(class=['text-wxl/7', 'font-medium', 'mb-2']) Welcome to #{user.name}
+
+  form(method='post' action='/board/post')
+    div(class=['flex', 'flex-row', 'space-x-2'])
+      input(name='massage' placeholder='メッセージ' autocomplete='off').grow-input
+      button(type='submit').submit-button 送信
