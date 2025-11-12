@@ -3,13 +3,22 @@ import express, {NextFunction, Request, Response} from 'express'
 import path from 'node:path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
+import session from "express-session";
+import {RedisStore} from 'connect-redis'
+import {createClient} from 'redis'
 
 import passport from './libs/auth.js' // 拡張済みの手作り passport を選択
+
 import indexRouter from './routes/index.js'
 import usersRouter from './routes/users.js'
-import session from "express-session";
+import boardRouter from './routes/board.js'
 
 const app = express()
+
+const redisClient = await createClient({url: process.env.REDIS_URL})
+  .on('error', (err: Error) => console.error(err))
+  .connect()
+const redisStore = new RedisStore({ client: redisClient })
 
 // view engine setup
 app.set('views', path.join(import.meta.dirname, 'views'))
@@ -28,12 +37,14 @@ app.use(session({
   cookie: {
     maxAge: 1000 * 60 * 60, // 1時間
     httpOnly: true,
-  }
+  },
+  store: redisStore // Redis ストアを使用 = セッションデータを Redis に保存
 }))
 app.use(passport.authenticate('session'))
 
 app.use('/', indexRouter)
 app.use('/users', usersRouter)
+app.use('/board', boardRouter)
 
 // catch 404 and forward to error handler
 app.use(async (req: Request, res: Response, next: NextFunction) => {
