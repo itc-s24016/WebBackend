@@ -15,10 +15,39 @@ router.use(async (req, res, next) => {
 })
 
 router.get('/{:page}', async (req, res) => {
-  // ページネーション対応の掲示板一覧表示
+  // ページネーション対応にする
   const page = parseInt(req.params.page || '1')
+  const posts = await prisma.post.findMany({
+    skip: (page - 1) * ITEMS_PER_PAGE,
+    take: ITEMS_PER_PAGE,
+    where: {
+      isDeleted: false // 削除したはずの投稿が表示されないようにする
+    },
+    orderBy: [
+      { createdAt: 'desc' } // 新しい投稿順に表示する
+    ],
+    include: {// 投稿者の id と name だけを取得する
+      user: {
+        select: {
+          id: true,
+          name: true
+        }
+      }
+    }
+  })
+  // 全投稿数を取得する (count 関数だと直接DBに問い合わせるのでコストが良い)
+  const count = await prisma.post.count({
+    where: {isDeleted: false},
+  })
+  const maxPage = Math.ceil(count / ITEMS_PER_PAGE) // 全件数から最大ページ数を計算する
 
-  res.send(`Welcome to board. page: ${page}`)
+  // テンプレートに送る情報
+  res.render('board/index', {
+    user: req.user, // ログイン中のユーザ情報
+    posts, // 投稿一覧データ
+    page, // 現在のページ番号
+    maxPage, // 最大ページ番号
+  })
 })
 
 export default router

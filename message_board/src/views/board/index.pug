@@ -1,0 +1,10 @@
+extends ../layout
+
+prepend head
+  - const title = 'Board'
+
+block header
+  h1(class=['text-5xl/14', 'font-light', 'mb-4', 'py-2']) メッセージ一覧
+
+block content
+  p(class=['text-wxl/7', 'font-medium', 'mb-2']) Welcome to #{user.name}
